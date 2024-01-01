@@ -6,6 +6,7 @@ class NonlinearEquation:
         self.error_message = ""
         self.function = None
         self.derivative_function = None
+        self.second_derivative_function = None
         # Define the symbolic variable
         self.x = sp.symbols('x')
         try:
