@@ -55,17 +55,43 @@ class SolverGUI:
                 dpg.add_text("CSE213 Numerical Analysis Project")
                 dpg.add_text("By CSED 2026 Students :\nAhmed Ayman\nAhmed Youssef\nEbrahim Alaa\nAli Hassan\nAhmed Mustafa\nMostafa Esam")
                 
+    def on_method_changed(self, sender, app_data):
+        method = dpg.get_value(sender)
 
+        # Hide all inputs initially
+        dpg.configure_item("m", show=False)
+        dpg.configure_item("x0", show=False)
+        dpg.configure_item("x_-1", show=False)
+        dpg.configure_item("g_x", show=False)
+
+        # Show inputs based on the selected method
+        if method == "Fixed point":
+            dpg.configure_item("g_x", show=True)
+            dpg.configure_item("x0", show=True)
+        elif method == "Original Newton-Raphson":
+            dpg.configure_item("x0", show=True)
+        elif method == "Modified Newton-Raphson":
+            dpg.configure_item("m", show=True)
+            dpg.configure_item("x0", show=True)
+        elif method == "Secant Method":
+            dpg.configure_item("x0", show=True)
+            dpg.configure_item("x_-1", show=True)
     
     def create_windows(self):
-        with dpg.window(tag="function_window", label="Function",pos=(0,30),height=140,width=1150):
+        with dpg.window(tag="function_window", label="Function",pos=(0,30),height=320,width=500):
             with dpg.group(horizontal=True):
-                dpg.add_input_text(tag="txt_function",default_value="x**3+4",no_spaces=True,width=1105)
+                dpg.add_input_text(tag="txt_function",default_value="x**3+4",no_spaces=True)
                 dpg.add_text("= 0")
-            dpg.add_slider_int(tag="precision",label="Precision",default_value=16,min_value=1,max_value=50,width=1055)
-            with dpg.group(horizontal=True):
-                # dpg.add_spacer(width=983)
-                dpg.add_button(label="PLOT",tag="btn_plot",width=-1,callback=self.plot_cb)
+            dpg.add_slider_int(tag="precision",label="Precision",default_value=16,min_value=1,max_value=50)
+            
+            dpg.add_combo(label = "Method", tag="method", items=["Bisection", "False-Position", "Fixed point", "Original Newton-Raphson", "Modified Newton-Raphson", "Secant Method"], default_value="Bisection", callback=self.on_method_changed)
+            dpg.add_input_int(tag="max_iter", label="Max Iterations", default_value=100)
+            dpg.add_input_float(tag="abs_error", label="Absolute Error", default_value=0.01)
+            dpg.add_input_float(tag="m", label="m", default_value=1,show=False)
+            dpg.add_input_float(tag="x0", label="x0", default_value=0,show=False)
+            dpg.add_input_float(tag="x_-1", label="x_-1", default_value=-1,show=False)
+            dpg.add_input_text(tag="g_x", label="g(x)", default_value="x",show=False)
+            dpg.add_button(label="PLOT",tag="btn_plot",width=-1,callback=self.plot_cb)
                 
         with dpg.window(tag="plot_window", label="Plot",pos=(0,180),width=1150,height=650, show=False):
             with dpg.theme(tag="plot_theme"):
