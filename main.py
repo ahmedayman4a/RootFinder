@@ -1,5 +1,5 @@
 import dearpygui.dearpygui as dpg
-from gui import SolverGUI
+from gui.gui import SolverGUI
 
 if __name__ == "__main__":
     dpg.create_context()
@@ -14,8 +14,11 @@ if __name__ == "__main__":
     solver_gui = SolverGUI()
     solver_gui.create_windows()
 
+    with dpg.handler_registry():
+        dpg.add_mouse_drag_handler(callback=solver_gui.update_plot_data)
+        dpg.add_mouse_wheel_handler(callback=solver_gui.update_plot_data)
 
-    dpg.create_viewport(title='Root Finder', width=1150, height=638,x_pos=300,y_pos=300, 
+    dpg.create_viewport(title='Root Finder', width=1150, height=900,x_pos=300,y_pos=100, 
                         small_icon=r'./assets/icons/algebra.png', 
                         large_icon=r'./assets/icons/algebra.ico')
     dpg.setup_dearpygui()
