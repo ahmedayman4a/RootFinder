@@ -39,21 +39,19 @@ class FixedPoint:
         self.steps.append(f"No convergence after {self.maxiter} iterations.")
         return None
 
-# # Define your f(x) and g(x) functions
-# def f(x):
-#     return x**2 - 2*x -3   # Replace this with your desired f(x) function
 
-# def g(x):
-#     return (x**2-3)/2  # Replace this with your desired g(x) function
+# import parsing_non_linear
+# f = parsing_non_linear.NonlinearEquation("x**3-2*x-3")
+# g = parsing_non_linear.NonlinearEquation("(2*x+3)**0.5")
 
 # # Define initial values
-# initial_guess = 4  # Initial guess for the root
+# initial_guess = 2  # Initial guess for the root
 # tolerance = 0.0001  # Tolerance for convergence
 # significant_figures = 5  # Number of significant figures
 # max_iterations = 50  # Maximum number of iterations
 
 # # Create an instance of FixedPoint with predefined f(x) and g(x)
-# fixed_pt = FixedPoint(f, g, initial_guess, tolerance, significant_figures, max_iterations)
+# fixed_pt = FixedPoint(f.function, g.function, initial_guess, tolerance, significant_figures, max_iterations)
 
 # # Solve the equation using Fixed-Point iteration
 # root = fixed_pt.solve()
@@ -62,8 +60,4 @@ class FixedPoint:
 # print("Iteration steps:")
 # for step in fixed_pt.steps:
 #     print(step)
-# if root is not None:
-#     print("Root found:", root)
-    
-# else:
-#     print("Diverge!!")
+
