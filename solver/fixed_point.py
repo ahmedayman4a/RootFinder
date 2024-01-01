@@ -11,21 +11,23 @@ class FixedPoint:
         self.steps = []
 
     def solve(self):
+        threshold  = 1e10
         x0 = round_to_sf(self.x0, self.sf)
         self.steps.append(f"Initial guess: {x0}")
 
         for i in range(self.maxiter):
             # Calculate the next approximation
-            try:
-                x_new = round_to_sf(self.g(x0), self.sf)
-            except Exception as e:
-                print("Error in function evaluation:", e)
+            x_new = round_to_sf(self.g(x0), self.sf)
+            if x_new > threshold or x_new <-threshold:
+                self.steps.append("Diverge!!")
                 return None
+
 
             # Calculate the relative error
             epsilon_a = abs((x_new - x0) / x_new) * 100 if x_new != 0 else float('inf')
+
             self.steps.append(f"Iteration {i + 1}:")
-            self.steps.append(f"x_new = {x_new}, Relative Error: {epsilon_a}%")
+            self.steps.append(f"x_new = {x_new}, Relative Error = {epsilon_a}%")
 
             # Check for convergence
             if epsilon_a <= self.tol:
@@ -36,16 +38,16 @@ class FixedPoint:
             # Update the current point
             x0 = x_new
 
-        self.steps.append(f"No convergence after {self.maxiter} iterations.")
+        self.steps.append(f"Diverge!!")
         return None
 
 
 # import parsing_non_linear
 # f = parsing_non_linear.NonlinearEquation("x**3-2*x-3")
-# g = parsing_non_linear.NonlinearEquation("(2*x+3)**0.5")
+# g = parsing_non_linear.NonlinearEquation("(x**2-3)/2")
 
 # # Define initial values
-# initial_guess = 2  # Initial guess for the root
+# initial_guess = 4  # Initial guess for the root
 # tolerance = 0.0001  # Tolerance for convergence
 # significant_figures = 5  # Number of significant figures
 # max_iterations = 50  # Maximum number of iterations
