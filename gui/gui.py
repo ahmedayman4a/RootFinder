@@ -80,7 +80,7 @@ class SolverGUI:
                 dpg.add_input_double(tag="txt_bound2",default_value=1,width=150,callback=self.bound2_input_changed)
                 
             dpg.add_text("Right click to open plot settings")
-            with dpg.plot(label="Function",tag="function_plot", height=500, width=-1):
+            with dpg.plot(label="Function",tag="function_plot", height=500, width=-1,anti_aliased=True):
                 dpg.add_plot_legend()
 
                 dpg.add_plot_axis(dpg.mvXAxis, label="x", tag="x_axis")
@@ -142,7 +142,7 @@ class SolverGUI:
             return
         mouse_x = dpg.get_axis_limits("x_axis")
         dpg.set_axis_limits_auto("y_axis")
-        x = np.linspace(mouse_x[0], mouse_x[1], 100)
+        x = np.linspace(mouse_x[0], mouse_x[1], 1000)
         y = self.func(x)
         dpg.set_value('function_line_plot', [x, y])
     
@@ -156,7 +156,7 @@ class SolverGUI:
         
         self.func = eval("lambda x: " + func_str)
 
-        x = np.linspace(-10, 10, 400)
+        x = np.linspace(-10, 10, 1000)
         y = self.func(x)
 
         # Draw the function on the plot
