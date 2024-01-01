@@ -1,4 +1,4 @@
-# System of Linear Equations Solver
+# Roots of Equation Finder
 > CSE213 Numerical Analysis Project by CSED 2026 Students : Ahmed Youssef, Ahmed Ayman, Ebrahim Alaa, Ali Hassan, Ahmed Mustafa, Mostafa Esam.
 ## Setup Instructions
 
@@ -8,7 +8,7 @@
 ```
 2. Change directory to the repo
 ```bash
-    cd NumericalProject
+    cd RootFinder
 ```
 3. Create a python virtual enviroment
 ```bash
