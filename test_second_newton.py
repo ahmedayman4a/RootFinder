@@ -1,3 +1,4 @@
+#Move to root directory of the project to run (or TODO: Fix import issue)
 from parsers.parsing_non_linear import NonlinearEquation
 from solver.second_newton_raphson import SecondNewtonRaphson 
 if __name__ == "__main__":
