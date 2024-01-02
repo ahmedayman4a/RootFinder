@@ -1,10 +1,11 @@
 from solver.round_to_sf import round_to_sf
 
 class BracketingMethodsSolver:
-    def __init__(self, equation, sf):
+    def __init__(self, equation, sf, max_iterations=100):
         self.equation = equation
         self.steps = []
         self.sf = sf
+        self.max_iterations = max_iterations
 
     def absolute_error(self, x_new, x_old):
         return abs((x_new - x_old) / x_new) * 100
@@ -27,7 +28,7 @@ class BracketingMethodsSolver:
             x_new = round_to_sf((L + U) / 2, self.sf)
             step += 1
             self.steps.append(f"[{step}]:\nLower bound: {L}\nUpper bound: {U}\nX: {x_new}\nAbsolute Error: {self.absolute_error(x_new, x_old)}\n")
-            while self.absolute_error(x_new, x_old) > error and step < 100:
+            while self.absolute_error(x_new, x_old) > error and step < self.max_iterations:
                 x_old = x_new
                 if self.equation(L) * self.equation(x_old) < 0:
                     U = x_old
@@ -57,7 +58,7 @@ class BracketingMethodsSolver:
             x_new = round_to_sf((L * self.equation(U) - U * self.equation(L)) / (self.equation(U) - self.equation(L)), self.sf)
             step += 1
             self.steps.append(f"[{step}]:\nLower bound: {L}\nUpper bound: {U}\nX: {x_new}\nAbsolute Error: {self.absolute_error(x_new, x_old)}\n")
-            while self.absolute_error(x_new, x_old) > error and step < 100:
+            while self.absolute_error(x_new, x_old) > error and step < self.max_iterations:
                 x_old = x_new
                 if self.equation(L) * self.equation(x_old) < 0:
                     U = x_old
