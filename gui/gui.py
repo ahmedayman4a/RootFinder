@@ -250,10 +250,13 @@ class SolverGUI:
                     dpg.configure_item("modal_invalid_exp", show=True)
                     return
                 
-                g_x_func = NonlinearEquation(g_x_str).function
-                if not self.parsed_equation.valid:
+                # Fix g(x) validation
+                g_x_expression = NonlinearEquation(g_x_str)
+                if not g_x_expression.valid:
                     dpg.configure_item("modal_invalid_exp", show=True)
                     return
+                g_x_func = g_x_expression.function
+
                 x0 = dpg.get_value("x0")
                 fixed_point_solver = FixedPoint(self.func,g_x_func,x0,abs_error,precision,max_iter)
                 tic = time.perf_counter()
