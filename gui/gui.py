@@ -232,7 +232,7 @@ class SolverGUI:
             fixed_point = False
             if method in ["Bisection", "False-Position"]:
                 
-                bracketing_solver = BracketingMethodsSolver(self.func,precision)
+                bracketing_solver = BracketingMethodsSolver(self.func,precision,max_iter)
                 bound1 = dpg.get_value("txt_bound1")
                 bound2 = dpg.get_value("txt_bound2")
                 lower_bound, upper_bound = (bound1,bound2) if bound1 < bound2 else (bound2, bound1)
