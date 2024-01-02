@@ -61,7 +61,7 @@ class SolverGUI:
         # Hide all inputs initially
         dpg.configure_item("m", show=False)
         dpg.configure_item("x0", show=False)
-        dpg.configure_item("x_-1", show=False)
+        dpg.configure_item("x1", show=False)
         dpg.configure_item("g_x", show=False)
 
         # Show inputs based on the selected method
@@ -75,7 +75,7 @@ class SolverGUI:
             dpg.configure_item("x0", show=True)
         elif method == "Secant Method":
             dpg.configure_item("x0", show=True)
-            dpg.configure_item("x_-1", show=True)
+            dpg.configure_item("x1", show=True)
     
     def create_windows(self):
         with dpg.window(tag="function_window", label="Function",pos=(0,30),height=320,width=500):
@@ -89,7 +89,7 @@ class SolverGUI:
             dpg.add_input_float(tag="abs_error", label="Absolute Error", default_value=0.001,step=0.001,format="%.6f",min_value=0.000001,min_clamped=True)
             dpg.add_input_float(tag="m", label="m", default_value=1,show=False)
             dpg.add_input_float(tag="x0", label="x0", default_value=0,show=False)
-            dpg.add_input_float(tag="x_-1", label="x_-1", default_value=-1,show=False)
+            dpg.add_input_float(tag="x1", label="x1", default_value=-1,show=False)
             dpg.add_input_text(tag="g_x", label="g(x)", default_value="x",show=False)
             dpg.add_button(label="PLOT",tag="btn_plot",width=-1,callback=self.plot_cb)
             
@@ -101,10 +101,10 @@ class SolverGUI:
             dpg.add_spacer(height=5)
             dpg.add_button(label="OK", width=-1, callback=lambda: dpg.configure_item("modal_invalid_exp", show=False))
             
-        with dpg.window(tag="steps_window",label="Steps",pos=(702, 350),width=750,height=545):
+        with dpg.window(tag="steps_window",label="Steps",pos=(702, 352),width=750,height=545):
                 self.steps = CustomLogger(title="Steps",pos=(595,300),width=550,height=350,parent="steps_window")
                 
-        with dpg.window(tag="plot_window", label="Plot",pos=(0,350),width=700,height=545, show=False):
+        with dpg.window(tag="plot_window", label="Plot",pos=(0,352),width=700,height=545, show=False):
             with dpg.theme(tag="plot_theme"):
                 with dpg.theme_component(dpg.mvLineSeries):
                     dpg.add_theme_color(dpg.mvPlotCol_Line, (60, 150, 200), category=dpg.mvThemeCat_Plots)
@@ -229,11 +229,14 @@ class SolverGUI:
             abs_error = dpg.get_value("abs_error")
             sol = None
             steps = None
+            fixed_point = False
             if method in ["Bisection", "False-Position"]:
+                
                 bracketing_solver = BracketingMethodsSolver(self.func,precision)
                 bound1 = dpg.get_value("txt_bound1")
                 bound2 = dpg.get_value("txt_bound2")
                 lower_bound, upper_bound = (bound1,bound2) if bound1 < bound2 else (bound2, bound1)
+                tic = time.perf_counter()
                 if method == "Bisection":
                     sol = bracketing_solver.bisection_method(lower_bound,upper_bound,abs_error)
                 else:
@@ -241,6 +244,7 @@ class SolverGUI:
                     
                 steps = bracketing_solver.steps
             elif method == "Fixed point":
+                fixed_point = True
                 g_x_str = dpg.get_value("g_x")
                 if g_x_str.isspace() or "x" not in g_x_str:
                     dpg.configure_item("modal_invalid_exp", show=True)
@@ -252,15 +256,43 @@ class SolverGUI:
                     return
                 x0 = dpg.get_value("x0")
                 fixed_point_solver = FixedPoint(self.func,g_x_func,x0,abs_error,precision,max_iter)
+                tic = time.perf_counter()
                 sol = fixed_point_solver.solve()
                 steps = fixed_point_solver.steps
+            elif method == "First Modified Newton-Raphson":
+                x0 = dpg.get_value("x0")
+                m = dpg.get_value("m")
+                newton1_solver = NewtonRaphson(self.func,self.parsed_equation.derivative_function,x0,abs_error,precision,m,max_iter)
+                tic = time.perf_counter()
+                sol = newton1_solver.solve()
+                steps = newton1_solver.steps
+            elif method == "Second Modified Newton-Raphson":
+                x0 = dpg.get_value("x0")
+                m = dpg.get_value("m")
+                newton2_solver = SecondNewtonRaphson(self.func,self.parsed_equation.derivative_function,self.parsed_equation.second_derivative_function,x0,abs_error,precision,max_iter)
+                tic = time.perf_counter()
+                sol = newton2_solver.solve()
+                steps = newton2_solver.steps
+            elif method == "Secant Method":
+                x0 = dpg.get_value("x0")
+                x1 = dpg.get_value("x1")
+                secant_solver = SecantMethod(self.func,x0,x1,abs_error,max_iter,precision)
+                tic = time.perf_counter()
+                sol = secant_solver.solve()
+                steps = secant_solver.steps
             else:
                 return
-                
+            toc = time.perf_counter()
             if sol is None:
-                dpg.set_value("solution_text","No solution found -- Divergent")
+                if fixed_point:
+                    dpg.set_value("solution_text","No solution found -- Divergent")
+                else:
+                    dpg.set_value("solution_text","No solution found")
             else:
-                dpg.set_value("solution_text","Root Found\n x = "+str(sol))
+                x= float(sol)
+                y = self.func(x)
+                dpg.add_plot_annotation(label=f"Root = {x:.2f}", default_value=(x, y),parent="function_plot", offset=(-15, 15), color=[255, 255, 0, 255])
+                dpg.set_value("solution_text",f"Root Found\n x = {str(sol)}\nRuntime : {(toc-tic):.6f}seconds")
                 
             self.steps.clear_log()
             for step in steps:
@@ -272,7 +304,7 @@ class SolverGUI:
         # Hide all inputs initially
         # dpg.configure_item("m", show=False)
         # dpg.configure_item("x0", show=False)
-        # dpg.configure_item("x_-1", show=False)
+        # dpg.configure_item("x1", show=False)
         # dpg.configure_item("g_x", show=False)
 
         # Show inputs based on the selected method
@@ -286,4 +318,4 @@ class SolverGUI:
         #     dpg.configure_item("x0", show=True)
         # elif method == "Secant Method":
         #     dpg.configure_item("x0", show=True)
-        #     dpg.configure_item("x_-1", show=True)
+        #     dpg.configure_item("x1", show=True)
