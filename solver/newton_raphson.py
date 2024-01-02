@@ -13,6 +13,7 @@ class NewtonRaphson:
         self.steps = []
 
     def solve(self):
+        threshold=1e10
         sf = self.sf
         x0 = round_to_sf(self.x0, sf)
         func = self.func
@@ -39,7 +40,9 @@ class NewtonRaphson:
                 self.steps.append(f"Convergence after {i + 1} iterations.")
                 self.steps.append(f"Root: {x_new}")
                 return x_new
-            
+            if abs(x_new) > threshold:
+                self.steps.append("Diverge!!")
+                return None
             # Update the current point
             x0 = x_new
 

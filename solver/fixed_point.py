@@ -18,10 +18,6 @@ class FixedPoint:
         for i in range(self.maxiter):
             # Calculate the next approximation
             x_new = round_to_sf(self.g(x0), self.sf)
-            if x_new > threshold or x_new <-threshold:
-                self.steps.append("Diverge!!")
-                return None
-
 
             # Calculate the relative error
             epsilon_a = abs((x_new - x0) / x_new) * 100 if x_new != 0 else float('inf')
@@ -34,7 +30,10 @@ class FixedPoint:
                 self.steps.append(f"Convergence after {i + 1} iterations.")
                 self.steps.append(f"Root: {x_new}")
                 return x_new
-
+            
+            if abs(x_new) > threshold:
+                self.steps.append("Diverge!!")
+                return None
             # Update the current point
             x0 = x_new
 

@@ -14,6 +14,7 @@ class SecondNewtonRaphson:
         self.steps = []
 
     def solve(self):
+        threshold = 1e10
         sf = self.sf
         x0 = round_to_sf(self.x0, sf)
         func = self.func
@@ -30,6 +31,7 @@ class SecondNewtonRaphson:
                 self.steps.append(f"Convergence after {i} iterations.")
                 self.steps.append(f"Root: {x_new}")
                 return x0
+
             if (df_x0)*(df_x0)==f_x0*sdf_x0:
                 self.steps.append(f"Division by zero at iteration {i + 1}, derivative is zero.")
                 return None
@@ -46,6 +48,9 @@ class SecondNewtonRaphson:
             )
             self.steps.append("_____________________________________________________")
             # Check for convergence
+            if abs(x_new) > threshold:
+                self.steps.append("Diverge!!")
+                return None
             if epsilon_a <= self.tol or f_x0 == 0:
                 self.steps.append(f"Convergence after {i + 1} iterations.")
                 self.steps.append(f"Root: {x_new}")
