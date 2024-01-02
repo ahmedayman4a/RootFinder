@@ -28,7 +28,7 @@ class BracketingMethodsSolver:
             x_new = round_to_sf((L + U) / 2, self.sf)
             step += 1
             self.steps.append(f"[{step}]:\nLower bound: {L}\nUpper bound: {U}\nX: {x_new}\nAbsolute Error: {self.absolute_error(x_new, x_old)}\n")
-            while self.absolute_error(x_new, x_old) > error and step < self.max_iterations:
+            while self.absolute_error(x_new, x_old) > error and step < self.max_iterations and self.equation(x_new) != 0:
                 x_old = x_new
                 if self.equation(L) * self.equation(x_old) < 0:
                     U = x_old
@@ -58,7 +58,7 @@ class BracketingMethodsSolver:
             x_new = round_to_sf((L * self.equation(U) - U * self.equation(L)) / (self.equation(U) - self.equation(L)), self.sf)
             step += 1
             self.steps.append(f"[{step}]:\nLower bound: {L}\nUpper bound: {U}\nX: {x_new}\nAbsolute Error: {self.absolute_error(x_new, x_old)}\n")
-            while self.absolute_error(x_new, x_old) > error and step < self.max_iterations:
+            while self.absolute_error(x_new, x_old) > error and step < self.max_iterations and self.equation(x_new) != 0:
                 x_old = x_new
                 if self.equation(L) * self.equation(x_old) < 0:
                     U = x_old
