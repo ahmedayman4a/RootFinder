@@ -1,4 +1,4 @@
-from round_to_sf import round_to_sf
+from solver.round_to_sf import round_to_sf
 
 class FixedPoint:
     def __init__(self, f, g, x0, tol, sf, maxiter=50):
@@ -22,8 +22,7 @@ class FixedPoint:
             # Calculate the relative error
             epsilon_a = abs((x_new - x0) / x_new) * 100 if x_new != 0 else float('inf')
 
-            self.steps.append(f"Iteration {i + 1}:")
-            self.steps.append(f"x_new = {x_new}, Relative Error = {epsilon_a}%")
+            self.steps.append(f"Iteration {i + 1}:\nx_new = {x_new}, Relative Error = {epsilon_a}%")
 
             # Check for convergence
             if epsilon_a <= self.tol:

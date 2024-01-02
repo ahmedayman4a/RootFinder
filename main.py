@@ -18,7 +18,7 @@ if __name__ == "__main__":
         dpg.add_mouse_drag_handler(callback=solver_gui.update_plot_data)
         dpg.add_mouse_wheel_handler(callback=solver_gui.update_plot_data)
 
-    dpg.create_viewport(title='Root Finder', width=1150, height=900,x_pos=300,y_pos=100, 
+    dpg.create_viewport(title='Root Finder', width=1450, height=900,x_pos=300,y_pos=100, 
                         small_icon=r'./assets/icons/algebra.png', 
                         large_icon=r'./assets/icons/algebra.ico')
     dpg.setup_dearpygui()

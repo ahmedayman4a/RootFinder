@@ -4,17 +4,17 @@ from mpmath import mp, matrix
 import time
 import numpy as np
 
-# enum for keeping track of CurrentState = Plotter,Solver
-class CurrentState:
-    PLOTTER = 0
-    SOLVER = 1
+from parsers import NonlinearEquation
+from solver import BracketingMethodsSolver,FixedPoint,NewtonRaphson,SecondNewtonRaphson,SecantMethod
+
 
 class SolverGUI:
     def __init__(self) -> None:
         self.set_theme()
         self.__create_menubar()
         self.func = None
-        self.current_state = CurrentState.PLOTTER
+        self.steps = None
+        self.parsed_equation = None
     
     def set_theme(self, theme=None):
         if theme is None:
@@ -68,10 +68,10 @@ class SolverGUI:
         if method == "Fixed point":
             dpg.configure_item("g_x", show=True)
             dpg.configure_item("x0", show=True)
-        elif method == "Original Newton-Raphson":
-            dpg.configure_item("x0", show=True)
-        elif method == "Modified Newton-Raphson":
+        elif method == "First Modified Newton-Raphson":
             dpg.configure_item("m", show=True)
+            dpg.configure_item("x0", show=True)
+        elif method == "Second Modified Newton-Raphson":
             dpg.configure_item("x0", show=True)
         elif method == "Secant Method":
             dpg.configure_item("x0", show=True)
@@ -84,16 +84,27 @@ class SolverGUI:
                 dpg.add_text("= 0")
             dpg.add_slider_int(tag="precision",label="Precision",default_value=16,min_value=1,max_value=50)
             
-            dpg.add_combo(label = "Method", tag="method", items=["Bisection", "False-Position", "Fixed point", "Original Newton-Raphson", "Modified Newton-Raphson", "Secant Method"], default_value="Bisection", callback=self.on_method_changed)
-            dpg.add_input_int(tag="max_iter", label="Max Iterations", default_value=100)
-            dpg.add_input_float(tag="abs_error", label="Absolute Error", default_value=0.01)
+            dpg.add_combo(label = "Method", tag="method", items=["Bisection", "False-Position", "Fixed point", "First Modified Newton-Raphson", "Second Modified Newton-Raphson", "Secant Method"], default_value="Bisection", callback=self.on_method_changed)
+            dpg.add_input_int(tag="max_iter", label="Max Iterations", default_value=100,min_value=1, min_clamped=True)
+            dpg.add_input_float(tag="abs_error", label="Absolute Error", default_value=0.001,step=0.001,format="%.6f",min_value=0.000001,min_clamped=True)
             dpg.add_input_float(tag="m", label="m", default_value=1,show=False)
             dpg.add_input_float(tag="x0", label="x0", default_value=0,show=False)
             dpg.add_input_float(tag="x_-1", label="x_-1", default_value=-1,show=False)
             dpg.add_input_text(tag="g_x", label="g(x)", default_value="x",show=False)
             dpg.add_button(label="PLOT",tag="btn_plot",width=-1,callback=self.plot_cb)
+            
+        with dpg.window(tag="solution_window", label="Solution",pos=(502,30),width=950,height=320):
+                dpg.add_text(tag="solution_text")    
                 
-        with dpg.window(tag="plot_window", label="Plot",pos=(0,180),width=1150,height=650, show=False):
+        with dpg.window(label="Invalid Expression", modal=True, show=False, tag="modal_invalid_exp", pos=(400,400)):
+            dpg.add_text("The function you supplied is invalid\nPlease make sure that the expression is a valid non-linear equation in the expected format.")
+            dpg.add_spacer(height=5)
+            dpg.add_button(label="OK", width=-1, callback=lambda: dpg.configure_item("modal_invalid_exp", show=False))
+            
+        with dpg.window(tag="steps_window",label="Steps",pos=(702, 350),width=750,height=545):
+                self.steps = CustomLogger(title="Steps",pos=(595,300),width=550,height=350,parent="steps_window")
+                
+        with dpg.window(tag="plot_window", label="Plot",pos=(0,350),width=700,height=545, show=False):
             with dpg.theme(tag="plot_theme"):
                 with dpg.theme_component(dpg.mvLineSeries):
                     dpg.add_theme_color(dpg.mvPlotCol_Line, (60, 150, 200), category=dpg.mvThemeCat_Plots)
@@ -104,15 +115,20 @@ class SolverGUI:
                 dpg.add_spacer(width=30)
                 dpg.add_text("Bound 2: ")
                 dpg.add_input_double(tag="txt_bound2",default_value=1,width=150,callback=self.bound2_input_changed)
+                with dpg.tooltip("txt_bound1"):
+                    dpg.add_text("Bounds are only used in Bisection and False-Position methods")
+                with dpg.tooltip("txt_bound2"):
+                    dpg.add_text("Bounds are only used in Bisection and False-Position methods")
                 
             dpg.add_text("Right click to open plot settings")
-            with dpg.plot(label="Function",tag="function_plot", height=500, width=-1,anti_aliased=True):
+            with dpg.plot(label="Function",tag="function_plot", height=400, width=-1,anti_aliased=True):
                 dpg.add_plot_legend()
 
                 dpg.add_plot_axis(dpg.mvXAxis, label="x", tag="x_axis")
                 dpg.add_plot_axis(dpg.mvYAxis, label="f(x)", tag="y_axis")
                 
-            dpg.add_button(label="SOLVE",tag="btn_solve",width=-1)
+                
+            dpg.add_button(label="SOLVE",tag="btn_solve",width=-1, callback=self.solve_cb)
 
     def reset_gui(self,sender, app_data):
         # Destroy all existing windows
@@ -120,7 +136,6 @@ class SolverGUI:
         dpg.delete_item("properties_window")
         dpg.delete_item("solution_window")
         dpg.delete_item("steps_window")
-        self.current_state = CurrentState.PLOTTER
         # Recreate the windows
         self.create_windows()
     
@@ -175,17 +190,23 @@ class SolverGUI:
     def plot_cb(self):
         # Get the function string from txt_function
         func_str = dpg.get_value("txt_function")
-        if func_str.isspace():
+        if func_str.isspace() or "x" not in func_str:
+            dpg.configure_item("modal_invalid_exp", show=True)
             return
         
-        dpg.configure_item("plot_window", show=True)
+        self.parsed_equation = NonlinearEquation(func_str)
+        if not self.parsed_equation.valid:
+            dpg.configure_item("modal_invalid_exp", show=True)
+            return
         
-        self.func = eval("lambda x: " + func_str)
+        self.func = self.parsed_equation.function
+                
 
         x = np.linspace(-10, 10, 1000)
         y = self.func(x)
 
         # Draw the function on the plot
+        dpg.configure_item("plot_window", show=True)
         self.remove_plot()
         dpg.add_line_series(x, y, label=func_str, parent="y_axis", tag="function_line_plot")
         dpg.add_drag_point(label="Bound 1",tag="point_bound1", color=[255, 0, 255, 255], default_value=(0, self.func(0)), callback=self.redraw_bound_1,parent="function_plot")
@@ -197,3 +218,72 @@ class SolverGUI:
         max_val = max(y)
         added = (abs(min_val) + abs(max_val))/5
         dpg.set_axis_limits("y_axis", ymin=min_val-added,ymax= max_val+added)
+        
+    def solve_cb(self):
+        try:
+            method = dpg.get_value("method")
+            
+            # ["Bisection", "False-Position", "Fixed point", "First Modified Newton-Raphson", "Second Modified Newton-Raphson", "Secant Method"]
+            precision = dpg.get_value("precision")
+            max_iter = dpg.get_value("max_iter")
+            abs_error = dpg.get_value("abs_error")
+            sol = None
+            steps = None
+            if method in ["Bisection", "False-Position"]:
+                bracketing_solver = BracketingMethodsSolver(self.func,precision)
+                bound1 = dpg.get_value("txt_bound1")
+                bound2 = dpg.get_value("txt_bound2")
+                lower_bound, upper_bound = (bound1,bound2) if bound1 < bound2 else (bound2, bound1)
+                if method == "Bisection":
+                    sol = bracketing_solver.bisection_method(lower_bound,upper_bound,abs_error)
+                else:
+                    sol =bracketing_solver.false_position_method(lower_bound,upper_bound,abs_error)
+                    
+                steps = bracketing_solver.steps
+            elif method == "Fixed point":
+                g_x_str = dpg.get_value("g_x")
+                if g_x_str.isspace() or "x" not in g_x_str:
+                    dpg.configure_item("modal_invalid_exp", show=True)
+                    return
+                
+                g_x_func = NonlinearEquation(g_x_str).function
+                if not self.parsed_equation.valid:
+                    dpg.configure_item("modal_invalid_exp", show=True)
+                    return
+                x0 = dpg.get_value("x0")
+                fixed_point_solver = FixedPoint(self.func,g_x_func,x0,abs_error,precision,max_iter)
+                sol = fixed_point_solver.solve()
+                steps = fixed_point_solver.steps
+            else:
+                return
+                
+            if sol is None:
+                dpg.set_value("solution_text","No solution found -- Divergent")
+            else:
+                dpg.set_value("solution_text","Root Found\n x = "+str(sol))
+                
+            self.steps.clear_log()
+            for step in steps:
+                self.steps.log(str(step))
+        except Exception as e:
+            print(e)
+            dpg.set_value("solution_text","No solution found -- Can't Solve")
+        
+        # Hide all inputs initially
+        # dpg.configure_item("m", show=False)
+        # dpg.configure_item("x0", show=False)
+        # dpg.configure_item("x_-1", show=False)
+        # dpg.configure_item("g_x", show=False)
+
+        # Show inputs based on the selected method
+        # if method == "Fixed point":
+        #     dpg.configure_item("g_x", show=True)
+        #     dpg.configure_item("x0", show=True)
+        # elif method == "First Modified Newton-Raphson":
+        #     dpg.configure_item("m", show=True)
+        #     dpg.configure_item("x0", show=True)
+        # elif method == "Second Modified Newton-Raphson":
+        #     dpg.configure_item("x0", show=True)
+        # elif method == "Secant Method":
+        #     dpg.configure_item("x0", show=True)
+        #     dpg.configure_item("x_-1", show=True)
