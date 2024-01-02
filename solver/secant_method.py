@@ -12,6 +12,7 @@ class SecantMethod:
         self.steps = []
 
     def solve(self):
+        threshold = 1e10
         x0 = self.x0
         x1 = self.x1
         tol = self.tol
@@ -44,7 +45,9 @@ class SecantMethod:
                 self.steps.append(f"Convergence after {i + 1} iterations.")
                 self.steps.append(f"Root: {x_new}")
                 return x_new
-
+            if abs(x_new) > threshold:
+                self.steps.append("Diverge!!")
+                return None
             x0 = x1
             x1 = x_new
 
