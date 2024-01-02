@@ -1,77 +1,78 @@
-from mpmath import mp
-
-mp.dps = 5  
+from round_to_sf import round_to_sf
 
 class BracketingMethodsSolver:
-    def __init__(self, equation):
+    def __init__(self, equation, sf):
         self.equation = equation
         self.steps = []
+        self.sf = sf
 
     def absolute_error(self, x_new, x_old):
-        return mp.fabs((x_new - x_old) / x_new) * 100
+        return abs((x_new - x_old) / x_new) * 100
 
     def bisection_method(self, L, U, error):
         step = 0
-        L = mp.mpf(L)
-        U = mp.mpf(U)
-        error = mp.mpf(error)
+        L = round_to_sf(L, self.sf)
+        U = round_to_sf(U, self.sf)
+        error = round_to_sf(error, self.sf)
 
         if self.equation(L) * self.equation(U) >= 0:
             raise ValueError("Bisection method fails.")
         else:
-            x_old = (L + U) / 2
+            x_old = round_to_sf((L + U) / 2, self.sf)
+            self.steps.append(f"[{step}]: Lower bound: {L} Upper bound: {U} X: {x_old}\n")
             if self.equation(L) * self.equation(x_old) < 0:
                 U = x_old
             else:
                 L = x_old
-            x_new = (L + U) / 2
-            self.steps.append("Step: " + str(step) + " Lower bound: " + str(L) + " Upper bound: " + str(U) + " X: " + str(x_old) + "\n")
-            step+=1
-            while self.absolute_error(x_new, x_old) > error:
+            x_new = round_to_sf((L + U) / 2, self.sf)
+            step += 1
+            self.steps.append(f"[{step}]: Lower bound: {L} Upper bound: {U} X: {x_new} Absolute Error: {self.absolute_error(x_new, x_old)}\n")
+            while self.absolute_error(x_new, x_old) > error and step < 100:
                 x_old = x_new
                 if self.equation(L) * self.equation(x_old) < 0:
                     U = x_old
                 else:
                     L = x_old
-                x_new = (L + U) / 2
-                self.steps.append("Step: " + str(step) + " Lower bound: " + str(L) + " Upper bound: " + str(U) + " X: " + str(x_old) + " Absolute Error: " + str(self.absolute_error(x_new, x_old)) + "\n")
-                step+=1
-            self.steps.append("X: " + str(x_new))
+                x_new = round_to_sf((L + U) / 2, self.sf)
+                step += 1
+                self.steps.append(f"[{step}]: Lower bound: {L} Upper bound: {U} X: {x_new} Absolute Error: {self.absolute_error(x_new, x_old)}\n")
+            self.steps.append(f"X: {x_new}")
             return x_new
 
     def false_position_method(self, L, U, error):
         step = 0
-        L = mp.mpf(L)
-        U = mp.mpf(U)
-        error = mp.mpf(error)
+        L = round_to_sf(L, self.sf)
+        U = round_to_sf(U, self.sf)
+        error = round_to_sf(error, self.sf)
 
         if self.equation(L) * self.equation(U) >= 0:
             raise ValueError("False position method fails.")
         else:
-            x_old = (L * self.equation(U) - U * self.equation(L)) / (self.equation(U) - self.equation(L))
+            x_old = round_to_sf((L * self.equation(U) - U * self.equation(L)) / (self.equation(U) - self.equation(L)), self.sf)
+            self.steps.append(f"[{step}]: Lower bound: {L} Upper bound: {U} X: {x_old}\n")
             if self.equation(L) * self.equation(x_old) < 0:
                 U = x_old
             else:
                 L = x_old
-            x_new = (L * self.equation(U) - U * self.equation(L)) / (self.equation(U) - self.equation(L))
-            self.steps.append("Lower bound: " + str(L) + " Upper bound: " + str(U) + " X: " + str(x_old + "\n"))
-            step+=1
-            while self.absolute_error(x_new, x_old) > error:
+            x_new = round_to_sf((L * self.equation(U) - U * self.equation(L)) / (self.equation(U) - self.equation(L)), self.sf)
+            step += 1
+            self.steps.append(f"[{step}]: Lower bound: {L} Upper bound: {U} X: {x_new} Absolute Error: {self.absolute_error(x_new, x_old)}\n")
+            while self.absolute_error(x_new, x_old) > error and step < 100:
                 x_old = x_new
                 if self.equation(L) * self.equation(x_old) < 0:
                     U = x_old
                 else:
                     L = x_old
-                x_new = (L * self.equation(U) - U * self.equation(L)) / (self.equation(U) - self.equation(L))
-                self.steps.append("Step: " + str(step) + " Lower bound: " + str(L) + " Upper bound: " + str(U) + " X: " + str(x_old) + " Absolute Error: " + str(self.absolute_error(x_new, x_old)) + "\n")
-                step+=1
-
-            self.steps.append("X: " + str(x_new))
+                x_new = round_to_sf((L * self.equation(U) - U * self.equation(L)) / (self.equation(U) - self.equation(L)), self.sf)
+                step += 1
+                self.steps.append(f"[{step}]: Lower bound: {L} Upper bound: {U} X: {x_new} Absolute Error: {self.absolute_error(x_new, x_old)}\n")
+            self.steps.append(f"X: {x_new}")
             return x_new
 
 # Example:
 equation = lambda x: 3 * x**4 + 6.1 * x**3 - 2 * x**2 + 3 * x + 2
-solver = BracketingMethodsSolver(equation)
+sf = 5  # Specify the desired number of significant figures
+solver = BracketingMethodsSolver(equation, sf)
 bisection_result = solver.bisection_method(-1, 0, 0.001)
 print("Bisection Method Result For a:", bisection_result)
 false_position_result = solver.false_position_method(-1, 0, 0.001)
