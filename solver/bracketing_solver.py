@@ -69,11 +69,11 @@ class BracketingMethodsSolver:
             self.steps.append(f"X: {x_new}")
             return x_new
 
-# Example:
-equation = lambda x: 3 * x**4 + 6.1 * x**3 - 2 * x**2 + 3 * x + 2
-sf = 5  # Specify the desired number of significant figures
-solver = BracketingMethodsSolver(equation, sf)
-bisection_result = solver.bisection_method(-1, 0, 0.001)
-print("Bisection Method Result For a:", bisection_result)
-false_position_result = solver.false_position_method(-1, 0, 0.001)
-print("False Position Method Result For a:", false_position_result)
+# # Example:
+# equation = lambda x: 3 * x**4 + 6.1 * x**3 - 2 * x**2 + 3 * x + 2
+# sf = 5  # Specify the desired number of significant figures
+# solver = BracketingMethodsSolver(equation, sf)
+# bisection_result = solver.bisection_method(-1, 0, 0.001)
+# print("Bisection Method Result For a:", bisection_result)
+# false_position_result = solver.false_position_method(-1, 0, 0.001)
+# print("False Position Method Result For a:", false_position_result)
