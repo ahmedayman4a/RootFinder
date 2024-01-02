@@ -51,7 +51,7 @@ class SecondNewtonRaphson:
             if abs(x_new) > threshold:
                 self.steps.append("Diverge!!")
                 return None
-            if epsilon_a <= self.tol or f_x0 == 0:
+            if epsilon_a <= self.tol or self.func(x_new) == 0:
                 self.steps.append(f"Convergence after {i + 1} iterations.")
                 self.steps.append(f"Root: {x_new}")
                 return x_new

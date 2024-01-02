@@ -25,7 +25,7 @@ class FixedPoint:
             self.steps.append(f"Iteration {i + 1}:\nx_new = {x_new}, Relative Error = {epsilon_a}%")
 
             # Check for convergence
-            if epsilon_a <= self.tol:
+            if epsilon_a <= self.tol or self.f(x_new)== 0:
                 self.steps.append(f"Convergence after {i + 1} iterations.")
                 self.steps.append(f"Root: {x_new}")
                 return x_new

@@ -36,7 +36,7 @@ class NewtonRaphson:
             self.steps.append(f"Iteration {i + 1}: x_new = {x_new}, f(x_new) = {f_x0}, f'(x_new) = {df_x0}, Relative Error: {epsolon_a}%")
 
             # Check for convergence
-            if epsolon_a <= self.tol or f_x0 == 0:
+            if epsolon_a <= self.tol or  self.func(x_new) == 0:
                 self.steps.append(f"Convergence after {i + 1} iterations.")
                 self.steps.append(f"Root: {x_new}")
                 return x_new

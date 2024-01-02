@@ -41,7 +41,7 @@ class SecantMethod:
 
             self.steps.append(f"Iteration {i + 1}: x_new = {x_new}, f(x_new) = {f_x1}, Relative Error: {epsolon_a}%")
 
-            if epsolon_a <= tol:
+            if epsolon_a <= tol or self.func(x_new) == 0:
                 self.steps.append(f"Convergence after {i + 1} iterations.")
                 self.steps.append(f"Root: {x_new}")
                 return x_new
