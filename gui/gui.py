@@ -143,6 +143,7 @@ class SolverGUI:
         dpg.delete_item("point_bound1")
         dpg.delete_item("point_bound2")
         dpg.delete_item("function_line_plot")
+        dpg.delete_item("root_anot")
     
     def update_bound(self,bound_id,new_x,new_y):
         if bound_id == 1:
@@ -294,7 +295,7 @@ class SolverGUI:
             else:
                 x= float(sol)
                 y = self.func(x)
-                dpg.add_plot_annotation(label=f"Root = {x:.2f}", default_value=(x, y),parent="function_plot", offset=(-15, 15), color=[255, 255, 0, 255])
+                dpg.add_plot_annotation(tag = "root_anot",label=f"Root = {x:.2f}", default_value=(x, y),parent="function_plot", offset=(-15, 15), color=[255, 255, 0, 255])
                 dpg.set_value("solution_text",f"Root Found\n x = {str(sol)}\nRuntime : {(toc-tic):.6f}seconds")
                 
             self.steps.clear_log()
