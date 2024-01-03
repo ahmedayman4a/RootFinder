@@ -26,3 +26,8 @@
 ```bash
     python3 main.py
 ```
+
+## Sample Run
+
+![Sample Run](https://i.ibb.co/x8f3Q7m/Screenshot-from-2024-01-03-18-12-04.png)
+
