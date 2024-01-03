@@ -222,6 +222,7 @@ class SolverGUI:
         
     def solve_cb(self):
         try:
+            dpg.delete_item("root_anot")
             method = dpg.get_value("method")
             
             # ["Bisection", "False-Position", "Fixed point", "First Modified Newton-Raphson", "Second Modified Newton-Raphson", "Secant Method"]
