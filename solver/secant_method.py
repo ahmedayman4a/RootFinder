@@ -25,10 +25,10 @@ class SecantMethod:
         for i in range(max_iter):
             f_x0 = func(x0)
             f_x1 = func(x1)
-            x1_minus_x0 = x1 - x0
+            x0_minus_x1 = round_to_sf(x0 - x1,sf)
 
             # Check if any intermediate calculation is not valid
-            if any(np.isinf(val) or np.isnan(val) for val in [f_x1, f_x0, x1_minus_x0]):
+            if any(np.isinf(val) or np.isnan(val) for val in [f_x1, f_x0, x0_minus_x1]):
                 self.steps.append("Error: intermediate calculation resulted in inf or nan at iteration {}".format(i + 1))
                 return None
 
@@ -36,7 +36,7 @@ class SecantMethod:
                 self.steps.append(f"Division by zero at iteration {i + 1}, cannot continue.")
                 return None
 
-            x_new = round_to_sf(x1 - f_x1 * (x1_minus_x0) / (f_x1 - f_x0), sf)
+            x_new = round_to_sf(x1 - f_x1 * (x0_minus_x1) / (f_x0 - f_x1), sf)
             epsolon_a = abs((x_new - x1) / x_new) * 100 if x_new != 0 else float('inf')
 
             self.steps.append(f"Iteration {i + 1}: x_new = {x_new}, f(x_new) = {f_x1}, Relative Error: {epsolon_a}%")

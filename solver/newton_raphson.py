@@ -33,7 +33,7 @@ class NewtonRaphson:
             
             # Calculate the relative error
             epsolon_a = abs(((x_new - x0) / x_new) * 100) if x_new != 0 else float('inf')
-            self.steps.append(f"Iteration {i + 1}: x_new = {x_new}, f(x_new) = {f_x0}, f'(x_new) = {df_x0}, Relative Error: {epsolon_a}%")
+            self.steps.append(f"Iteration {i + 1}: x_new = {x_new}, f(x_new) = {round_to_sf(f_x0,sf)}, f'(x_new) = {round_to_sf(df_x0,sf)}, Relative Error: {epsolon_a}%")
 
             # Check for convergence
             if epsolon_a <= self.tol or  self.func(x_new) == 0:
